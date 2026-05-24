@@ -78,4 +78,19 @@ async def send_automatic_post(topic: str):
 
 @app.on_event("startup")
 async def on_startup():
-    # Pollingni fonga topshiriq qilib beramiz
+    # Mana shu qatordan boshlab pastdagi barcha qatorlar funksiya ichiga 4 ta probel (yoki 1 ta Tab) bilan surilishi shart!
+    asyncio.create_task(dp.start_polling(bot))
+
+    for post in AUTO_POSTS:
+        hour, minute = post["time"].split(":")
+        scheduler.add_job(
+            send_automatic_post,
+            'cron',
+            hour=int(hour),
+            minute=int(minute),
+            args=[post["topic"]],
+            misfire_grace_time=600
+        )
+
+    scheduler.start()
+    print("🤖 Bot va taymer muvaffaqiyatli ishga tushdi!")
