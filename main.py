@@ -29,6 +29,8 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title='Avtomatik AI Kanal Bot')
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+# Timezone'ni qat'iy belgilaymiz
 scheduler = AsyncIOScheduler(timezone='Asia/Tashkent')
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -63,6 +65,7 @@ async def send_automatic_post(topic: str):
     print(f"\n🔄 '{topic}' mavzusida post tayyorlanmoqda...")
     post_text = await generate_useful_content(topic)
     try:
+        # aiogram v3 uchun parse_mode bot obyektida yoki yuklamada to'g'ri berilishi kerak
         await bot.send_message(
             chat_id=KANAL_USERNAME,
             text=post_text,
@@ -75,22 +78,4 @@ async def send_automatic_post(topic: str):
 
 @app.on_event("startup")
 async def on_startup():
-    asyncio.create_task(dp.start_polling(bot))
-
-    for post in AUTO_POSTS:
-        hour, minute = post["time"].split(":")
-        scheduler.add_job(
-            send_automatic_post,
-            'cron',
-            hour=int(hour),
-            minute=int(minute),
-            args=[post["topic"]]
-        )
-
-    scheduler.start()
-    print("🤖 Bot va taymer muvaffaqiyatli ishga tushdi!")
-
-
-@app.get("/")
-def home():
-    return {"status": "Bot faol"}
+    # Pollingni fonga topshiriq qilib beramiz
